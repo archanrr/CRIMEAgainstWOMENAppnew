@@ -1,20 +1,24 @@
 package com.hackathon.cyberblue.crimeagainstwomenapp;
 
+import java.util.Date;
+
 /**
  * Created by ARCHAN on 15-03-2018.
  */
 
 public class Crime {
-    public String name,description,state,crimeType,locat;
+    public String name,about,state,crime_type;
     public Double lat,lon;
-    public String loca;
-    Crime(String s1,String s2,String loca1,String description,String name)
+    String d1;
+    public String location;
+    Crime(String s1, String s2, String loca1, String description, String name,String d)
     {
         this.state=s1;
-        this.crimeType=s2;
-        this.description=description;
+        this.crime_type=s2;
+        this.about=description;
         this.name=name;
-        this.loca=loca1;
+        this.location=loca1;
+        this.d1=d;
     }
     Crime(Double lat,Double lon)
     {

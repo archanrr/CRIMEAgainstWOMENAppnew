@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,6 +33,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static android.widget.AdapterView.*;
 import static android.widget.Toast.LENGTH_LONG;
@@ -43,6 +46,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int[] lon={80,90};
 
     public DatabaseReference databaseReference;
+
+
 
     public String state,name;
     public String description;
@@ -56,8 +61,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        EditText date1=(EditText)findViewById(R.id.datepicket);
 
-        databaseReference= FirebaseDatabase.getInstance().getReference("DETAILS");
+        date1.setText(getCurrentTimeStamp());
+
+
+        databaseReference= FirebaseDatabase.getInstance().getReference("Crime");
         //-----------------------------------------------------------------
         final Spinner spinner = (Spinner) findViewById(R.id.spinner);
        // spinner.setOnItemSelectedListener(this);
@@ -150,8 +159,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //Do what you want on obtained latLng
                 Toast.makeText(MapsActivity.this,String.valueOf(latLng), Toast.LENGTH_SHORT).show();
-                saveLat=latLng.latitude;
-                saveLong=latLng.longitude;
+                saveLat=(Double)latLng.latitude;
+                saveLong= (Double)latLng.longitude;
                 mMap.addMarker(new MarkerOptions().position(latLng).title("TITLE"));
 
             }
@@ -177,11 +186,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void Enter(View view) {
         EditText Des=(EditText)findViewById(R.id.edit);
         EditText name=(EditText)findViewById(R.id.name);
-        Crime c=new Crime(state,crimeType,"LOCATION",Des.toString(),name.toString());
+        EditText date1=(EditText)findViewById(R.id.datepicket);
+        String des=Des.getText().toString();
+        String n1=name.getText().toString();
+        String day1=getCurrentTimeStamp();
+        Log.i("Date", day1);
+        Crime c=new Crime(state,crimeType,"LOCATION",des, n1, day1);
         Crime c1=new Crime(saveLat,saveLong);
+        String s=databaseReference.push().getKey();
+        databaseReference.child(s).setValue(c);
 
-        databaseReference.child("LOCATION").setValue(c1);
+        databaseReference.child(s).child("location").setValue(c1);
         Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
 
+    }
+    public static String getCurrentTimeStamp(){
+        try {
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String currentDateTime = dateFormat.format(new Date()); // Find todays date
+
+            return currentDateTime;
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return null;
+        }
     }
 }
