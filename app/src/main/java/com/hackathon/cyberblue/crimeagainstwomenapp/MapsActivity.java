@@ -13,30 +13,41 @@ import android.view.View.OnClickListener;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
+//import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.lang.reflect.Array;
 
 import static android.widget.AdapterView.*;
 import static android.widget.Toast.LENGTH_LONG;
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,GoogleMap.OnMyLocationButtonClickListener,
-        OnMyLocationClickListener{
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,GoogleMap.OnMyLocationButtonClickListener
+        /*OnMyLocationClickListener*/{
 
     private GoogleMap mMap;
     private int[] lat={16,30};
     private int[] lon={80,90};
+
+    public DatabaseReference databaseReference;
+
+    public String state,name;
+    public String description;
+    public String crimeType;
+    public double saveLat,saveLong;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +56,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        databaseReference= FirebaseDatabase.getInstance().getReference("DETAILS");
         //-----------------------------------------------------------------
         final Spinner spinner = (Spinner) findViewById(R.id.spinner);
        // spinner.setOnItemSelectedListener(this);
@@ -59,7 +72,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //----------------------------------------------------------------
 
     //-----------------------------------------------------------------
-        Spinner spinner1 = (Spinner) findViewById(R.id.spinner1);
+        final Spinner spinner1 = (Spinner) findViewById(R.id.spinner1);
 // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter1 = ArrayAdapter.createFromResource(this,
                 R.array.crime_arrays, android.R.layout.simple_spinner_item);
@@ -68,12 +81,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 // Apply the adapter to the spinner
         spinner1.setAdapter(adapter1);
         //----------------------------------------------------------------
+        spinner1.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                parent.getItemIdAtPosition(position);
+                crimeType=String.valueOf(spinner1.getSelectedItem());
+                Toast.makeText(MapsActivity.this, String.valueOf(spinner1.getSelectedItem()), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
     spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
             parent.getItemIdAtPosition(position);
+            state=String.valueOf(spinner.getSelectedItem());
             mMap.clear();
             Toast.makeText(MapsActivity.this, String.valueOf(spinner.getSelectedItem()), Toast.LENGTH_SHORT).show();
             LatLng sydney = new LatLng(lat[position], lon[position]);
@@ -115,26 +142,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mMap.setMyLocationEnabled(true);
       // mMap.setOnMyLocationButtonClickListener((GoogleMap.OnMyLocationButtonClickListener) this);
-        mMap.setOnMyLocationClickListener((OnMyLocationClickListener) this);
+       // mMap.setOnMyLocationClickListener((OnMyLocationClickListener) this);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 mMap.clear();
 
                 //Do what you want on obtained latLng
-                Toast.makeText(MapsActivity.this,"ARCHAN"+String.valueOf(latLng), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapsActivity.this,String.valueOf(latLng), Toast.LENGTH_SHORT).show();
+                saveLat=latLng.latitude;
+                saveLong=latLng.longitude;
                 mMap.addMarker(new MarkerOptions().position(latLng).title("TITLE"));
+
             }
         });
     }
 
- @Override
+/* @Override
     public void onMyLocationClick(@NonNull Location location) {
         Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
 
         mMap.setMaxZoomPreference(5);
     }
-
+*/
     @Override
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
@@ -145,6 +175,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void Enter(View view) {
+        EditText Des=(EditText)findViewById(R.id.edit);
+        EditText name=(EditText)findViewById(R.id.name);
+        Crime c=new Crime(state,crimeType,"LOCATION",Des.toString(),name.toString());
+        Crime c1=new Crime(saveLat,saveLong);
+
+        databaseReference.child("LOCATION").setValue(c1);
+        Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
 
     }
 }
