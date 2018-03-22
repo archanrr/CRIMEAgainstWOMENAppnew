@@ -17,5 +17,10 @@ public class MainActivity extends AppCompatActivity {
         Intent intent=new Intent(this,MapsActivity.class);
         startActivity(intent);
     }
+    public  void  cam(View v)
+    {
+        Intent i=new Intent(MainActivity.this,Main3Activity.class);
+        startActivity(i);
+    }
 
 }
